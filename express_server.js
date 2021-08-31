@@ -50,10 +50,14 @@ app.post("/urls", (req, res) => {
 }); 
 
 app.get("/u/:shortURLId", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURLId]
+  const longURL = urlDatabase[req.params.shortURLId];
   res.redirect(longURL);
 });
 
+app.post("/urls/:shortURLId/delete", (req, res) => {
+  delete urlDatabase[req.params.shortURLId];
+  res.redirect("/urls")
+})
 
 app.get("/urls/new", (req,res) => {
   res.render("urls_new");
