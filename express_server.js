@@ -1,21 +1,21 @@
 const express = require("express");
 const app = express();
-const PORT = 8080;
+const PORT = 3000;
 const bodyParser = require("body-parser")
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.set("view engine", "ejs")
 
 function generateRandomString() {
-  const results = "";
+  let results = "";
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
   const charactersLength = characters.length;
 
   for (let i = 0; i < 6; i++) {
-    result += characters.charAt(Math.floor(Math.random() * 
+    results += characters.charAt(Math.floor(Math.random() * 
  charactersLength ));
   }
-  return results
+  return results;
 }
 
 const urlDatabase = {
@@ -37,9 +37,23 @@ app.get("/urls", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);
-  res.send("Ok");
+
+  // Generate a random shortURL
+  const shortURLId = generateRandomString();
+
+  // extract the input from the form
+  // const longURL = `http://${req.body.longURL}` better for now to use below b/c this one can't be used for httpS urls
+  const longURL = req.body.longURL
+
+  urlDatabase[shortURLId] = longURL
+  res.redirect(`/urls/${shortURLId}`);
 }); 
+
+app.get("/u/:shortURLId", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURLId]
+  res.redirect(longURL);
+});
+
 
 app.get("/urls/new", (req,res) => {
   res.render("urls_new");
@@ -51,9 +65,6 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-app.get("/u/:shortURL", (req, res) => {
-  res.redirect(urlDatabase[req.params.shortURL]);
-});
 
 
 
