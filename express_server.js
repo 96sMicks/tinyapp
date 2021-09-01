@@ -5,7 +5,7 @@ const bodyParser = require("body-parser")
 const cookieParser = require("cookie-parser")
 
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser())
+app.use(cookieParser());
 
 app.set("view engine", "ejs")
 
@@ -19,23 +19,37 @@ function generateRandomString() {
  charactersLength ));
   }
   return results;
-}
+};
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello! <b>World</b><html.\n");
-});
+const usersDb = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "b@b.com", 
+    password: "111"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
+
+  const userId = req.cookies["user_id"];
+  const user = usersDb[userId];
+
+  const templateVars = { urls: urlDatabase, user  };
+  console.log(templateVars)
   
   res.render("urls_index", templateVars);
 });
@@ -74,15 +88,54 @@ app.post("/login", (req, res) => {
 
 // Logout route
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
   res.redirect("/urls")
 });
 
-// Register route
+// Display register page
 
 app.get("/register" , (req, res) => {
-  const templateVars = { username: req.cookies["username"] }
+  const userId = req.cookies["user_id"];
+  const user = usersDb[userId];
+
+  const templateVars = { user }
   res.render("_register", templateVars)
+});
+
+// just for dev purpose to userDb updating --delete before submission
+
+app.get('/users', (req, res) => {
+  console.log(usersDb);
+  res.json(usersDb);
+});
+
+// Post register route
+
+app.post("/register" , (req, res) => {
+
+  
+  // Setting userId
+  const userId = generateRandomString();
+
+  // Getting the inputs email and password from form
+  const { email, password } = req.body
+
+  // Creating a new user in userDb
+ const newUser = {
+    id: userId,
+    email,
+    password
+  };
+
+  // Adding user info to userDb
+  usersDb[userId] = newUser
+
+  console.log("_111--------------", usersDb);
+  
+  //After adding user, setting a user_id cookie to our new generated id
+  res.cookie("user_id", userId);
+
+  res.redirect("/urls");
 });
 
 app.post("/urls/:shortURLId", (req, res) => {
@@ -94,7 +147,10 @@ app.post("/urls/:shortURLId", (req, res) => {
 
 
 app.get("/urls/new", (req,res) => {
-  const templateVars = { username: req.cookies["username"] }
+  const userId = res.cookie["user_id"];
+  const user = usersDb[userId];
+
+  const templateVars = { user }
   res.render("urls_new", templateVars);
 });
 
