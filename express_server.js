@@ -9,6 +9,8 @@ app.use(cookieParser());
 
 app.set("view engine", "ejs")
 
+// Helper functions
+
 function generateRandomString() {
   let results = "";
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
@@ -20,6 +22,18 @@ function generateRandomString() {
   }
   return results;
 };
+
+// checks to see if email is already in userDb
+const emailVerifier = function(email, database)  {
+
+  for(const userId in database) {
+    if (database[userId].email === email) {
+      return database[userId];
+    }
+  }
+  return false;
+};
+
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -49,7 +63,6 @@ app.get("/urls", (req, res) => {
   const user = usersDb[userId];
 
   const templateVars = { urls: urlDatabase, user  };
-  console.log(templateVars)
   
   res.render("urls_index", templateVars);
 });
@@ -105,7 +118,6 @@ app.get("/register" , (req, res) => {
 // just for dev purpose to userDb updating --delete before submission
 
 app.get('/users', (req, res) => {
-  console.log(usersDb);
   res.json(usersDb);
 });
 
@@ -113,7 +125,20 @@ app.get('/users', (req, res) => {
 
 app.post("/register" , (req, res) => {
 
-  
+  // error handling for empty password, email or duplicate email while resgistering new user
+  if (req.body.email === "") {
+    return res.status(400).send('Bad Request')
+  }
+
+  if (req.body.password === "") {
+    return res.status(400).send('Bad Request')
+  }
+
+  // Calling emailVerifier on the new registered email
+  if (emailVerifier(req.body.email, usersDb)) {
+    return res.status(400).send('Bad Request')
+  }
+
   // Setting userId
   const userId = generateRandomString();
 
@@ -130,7 +155,6 @@ app.post("/register" , (req, res) => {
   // Adding user info to userDb
   usersDb[userId] = newUser
 
-  console.log("_111--------------", usersDb);
   
   //After adding user, setting a user_id cookie to our new generated id
   res.cookie("user_id", userId);
