@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const PORT = 3000;
 const bodyParser = require("body-parser")
+const cookieParser = require("cookie-parser")
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.set("view engine", "ejs")
@@ -59,12 +60,23 @@ app.post("/urls/:shortURLId/delete", (req, res) => {
   res.redirect("/urls")
 });
 
+app.post("/login", (req, res) => {
+  // console.log(cookieParser.JSONCookies(req.body["username"]))
+  userValue = cookieParser.JSONCookies(req.body["username"])
+  // userValue2 = req.body["username"]
+  // console.log(userValue2)
+  res.cookie("username", userValue);
+  // res.cookie("username", userValue2)
+  res.redirect("/urls")
+});
+
 app.post("/urls/:shortURLId", (req, res) => {
   const longURL = req.body["newLongURL"];
   urlDatabase[req.params.shortURLId] = longURL
   const templateVars = {urls: urlDatabase};
   res.render("urls_index", templateVars);
 });
+
 
 app.get("/urls/new", (req,res) => {
   res.render("urls_new");
