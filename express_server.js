@@ -46,8 +46,20 @@ const authenticateUser = (email, password, usersDb) => {
 
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userId: "userRandomID"
+  },
+  "9sm5xK": {
+   longURL: "http://www.google.com",
+   userId: "userRandomID"
+  },
+  "m1cK3y": {
+    longURL: "http://www.nba.com",
+    userId: "user2RandomID"
+  }
+    
 };
 
 const usersDb = { 
@@ -58,8 +70,8 @@ const usersDb = {
   },
  "user2RandomID": {
     id: "user2RandomID", 
-    email: "user2@example.com", 
-    password: "dishwasher-funk"
+    email: "a@a.com", 
+    password: "aaa"
   }
 }
 
@@ -77,39 +89,56 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+// Creating a new shortURL and entering it in the urlDatabase
 app.post("/urls", (req, res) => {
   
   const userId = req.cookies["user_id"];
   const user = usersDb[userId];
-
+  
+  if(!user) {
+    return res.redirect("/login")
+  }
 
   // Generate a random shortURL
   const shortURLId = generateRandomString();
+
+  // Set the shortURL as a new key in the Db
+  urlDatabase[shortURLId] = {}
 
   // extract the input from the form
   // const longURL = `http://${req.body.longURL}` better for now to use below b/c this one can't be used for httpS urls
   const longURL = req.body.longURL
 
-  urlDatabase[shortURLId] = longURL
+  // Setting the new shortURL key values in the database
+  urlDatabase[shortURLId]["longURL"] = longURL
+  urlDatabase[shortURLId]["userId"] = userId
 
-  if(!user) {
-    return res.redirect("/login")
-  }
+  console.log(urlDatabase);
 
   res.redirect(`/urls/${shortURLId}`);
 }); 
 
+// Setting the link to the URL for shortURls
 app.get("/u/:shortURLId", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURLId];
+  
+  const longURL = (urlDatabase[req.params.shortURLId]["longURL"]);
+
+  // const longURL = urlDatabase[req.params.shortURLId];
   res.redirect(longURL);
 });
 
+// The delete route
 app.post("/urls/:shortURLId/delete", (req, res) => {
+
   const userId = req.cookies["user_id"];
   const user = usersDb[userId];
-  
 
+  if(!user) {
+    return res.redirect("/login")
+  }
+  
   delete urlDatabase[req.params.shortURLId];
+
   res.redirect("/urls")
 });
 
@@ -146,15 +175,7 @@ app.post("/login", (req, res) => {
     res.status(403).send('Wrong password.')
   }
 });
-    
   
-  
-  // const userId = req.cookies["user_id"];
-  // const user = usersDb[userId];
-
-  // const templateVars = { urls: urlDatabase, user  }
-
-
 // Logout route
 
 app.post("/logout", (req, res) => {
@@ -226,13 +247,15 @@ app.post("/urls/:shortURLId", (req, res) => {
   const userId = req.cookies["user_id"];
   const user = usersDb[userId];
 
-  const longURL = req.body["newLongURL"];
-  urlDatabase[req.params.shortURLId] = longURL
-  const templateVars = { urls: urlDatabase, user };
-
   if(!user) {
     return res.redirect("/login")
   }
+
+  const longURL = req.body["newLongURL"];
+
+  urlDatabase[req.params.shortURLId].longURL = longURL
+  const templateVars = { urls: urlDatabase, user };
+
 
   res.render("urls_index", templateVars);
 });
@@ -256,8 +279,13 @@ app.get("/urls/:shortURL", (req, res) => {
 
   const userId = req.cookies["user_id"];
   const user = usersDb[userId];
+  
+  if(!user) {
+    return res.redirect("/login")
+  }
 
-  const templateVars = {  shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], 
+
+  const templateVars = {  shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]["longURL"], 
  user };
   res.render("urls_show", templateVars);
 });
