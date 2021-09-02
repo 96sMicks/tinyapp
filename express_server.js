@@ -34,6 +34,15 @@ const emailVerifier = function(email, database)  {
   return false;
 };
 
+const authenticateUser = (email, password, usersDb) => {
+
+  const userFound = emailVerifier(email, usersDb);
+
+  if (userFound && userFound.password === password) {
+    return userFound;
+  } 
+  return false;
+};
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -90,16 +99,54 @@ app.post("/urls/:shortURLId/delete", (req, res) => {
   res.redirect("/urls")
 });
 
-// Login route
+// Display login page
+app.get("/login", (req,res) => {
 
-app.post("/login", (req, res) => {
   
-  res.cookie("username", req.body["username"]);
 
-  res.redirect("/urls")
+  const userId = req.cookies["user_id"];
+  const user = usersDb[userId];
+
+
+  const templateVars = { user }
+  res.render("_login", templateVars)
+})
+
+// Login route
+app.post("/login", (req, res) => {
+
+  // Extract the user info from the login form 
+  const { email, password } = req.body;
+
+
+  // check if email is in userDb
+  // if ((emailVerifier(req.body.email, usersDb))) {
+  //   res.cookie("username", req.body.email)
+  // } else {
+  //   return res.status(400).send('Bad Request')
+  // }
+
+  const user = authenticateUser (email, password, usersDb)
+
+  if (user) {
+    // log the user in
+    res.cookie('user_id', user.id);
+    res.redirect("/urls");
+  } else {
+    res.send("Sorry, wrong email/password.")
+  }
 });
+    
+  
+  
+  // const userId = req.cookies["user_id"];
+  // const user = usersDb[userId];
+
+  // const templateVars = { urls: urlDatabase, user  }
+
 
 // Logout route
+
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
   res.redirect("/urls")
@@ -121,6 +168,7 @@ app.get('/users', (req, res) => {
   res.json(usersDb);
 });
 
+
 // Post register route
 
 app.post("/register" , (req, res) => {
@@ -136,7 +184,7 @@ app.post("/register" , (req, res) => {
 
   // Calling emailVerifier on the new registered email
   if (emailVerifier(req.body.email, usersDb)) {
-    return res.status(400).send('Bad Request')
+    return res.status(400).send('Email already registered')
   }
 
   // Setting userId
@@ -171,10 +219,10 @@ app.post("/urls/:shortURLId", (req, res) => {
 
 
 app.get("/urls/new", (req,res) => {
-  const userId = res.cookie["user_id"];
+  const userId = req.cookies["user_id"];
   const user = usersDb[userId];
 
-  const templateVars = { user }
+  const templateVars = { urls: urlDatabase, user }
   res.render("urls_new", templateVars);
 });
 
