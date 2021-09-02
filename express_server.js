@@ -78,6 +78,10 @@ app.get("/urls", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
+  
+  const userId = req.cookies["user_id"];
+  const user = usersDb[userId];
+
 
   // Generate a random shortURL
   const shortURLId = generateRandomString();
@@ -87,6 +91,11 @@ app.post("/urls", (req, res) => {
   const longURL = req.body.longURL
 
   urlDatabase[shortURLId] = longURL
+
+  if(!user) {
+    return res.redirect("/login")
+  }
+
   res.redirect(`/urls/${shortURLId}`);
 }); 
 
@@ -96,6 +105,10 @@ app.get("/u/:shortURLId", (req, res) => {
 });
 
 app.post("/urls/:shortURLId/delete", (req, res) => {
+  const userId = req.cookies["user_id"];
+  const user = usersDb[userId];
+  
+
   delete urlDatabase[req.params.shortURLId];
   res.redirect("/urls")
 });
@@ -217,15 +230,24 @@ app.post("/urls/:shortURLId", (req, res) => {
   urlDatabase[req.params.shortURLId] = longURL
   const templateVars = { urls: urlDatabase, user };
 
+  if(!user) {
+    return res.redirect("/login")
+  }
+
   res.render("urls_index", templateVars);
 });
 
 
 app.get("/urls/new", (req,res) => {
+
   const userId = req.cookies["user_id"];
   const user = usersDb[userId];
-
   const templateVars = { urls: urlDatabase, user }
+
+  if(!user) {
+    return res.redirect("/login")
+  }
+  
   res.render("urls_new", templateVars);
 });
 
