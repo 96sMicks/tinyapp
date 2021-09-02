@@ -38,7 +38,7 @@
           </form>
           <% } %>
         <% if (user) { %>
-        <h1>Hello <%= user.email %></h1>
+        <h1>Logged in as: <%= user.email %></h1>
         <form method="POST" action="/logout">
           <button
             type="submit"

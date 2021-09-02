@@ -30,8 +30,7 @@ const emailVerifier = function(email, database)  {
     if (database[userId].email === email) {
       return database[userId];
     }
-  }
-  return false;
+  } return false;
 };
 
 const authenticateUser = (email, password, usersDb) => {
@@ -43,6 +42,8 @@ const authenticateUser = (email, password, usersDb) => {
   } 
   return false;
 };
+
+
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -102,11 +103,8 @@ app.post("/urls/:shortURLId/delete", (req, res) => {
 // Display login page
 app.get("/login", (req,res) => {
 
-  
-
   const userId = req.cookies["user_id"];
   const user = usersDb[userId];
-
 
   const templateVars = { user }
   res.render("_login", templateVars)
@@ -119,12 +117,11 @@ app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
 
-  // check if email is in userDb
-  // if ((emailVerifier(req.body.email, usersDb))) {
-  //   res.cookie("username", req.body.email)
-  // } else {
-  //   return res.status(400).send('Bad Request')
-  // }
+  // check if email is in userDb ---- ask about this
+  if ((emailVerifier(email, usersDb))) {
+  } else {
+    return res.status(403).send('Email cannot be found')
+  }
 
   const user = authenticateUser (email, password, usersDb)
 
@@ -133,7 +130,7 @@ app.post("/login", (req, res) => {
     res.cookie('user_id', user.id);
     res.redirect("/urls");
   } else {
-    res.send("Sorry, wrong email/password.")
+    res.status(403).send('Wrong password.')
   }
 });
     
@@ -159,6 +156,7 @@ app.get("/register" , (req, res) => {
   const user = usersDb[userId];
 
   const templateVars = { user }
+
   res.render("_register", templateVars)
 });
 
@@ -184,7 +182,7 @@ app.post("/register" , (req, res) => {
 
   // Calling emailVerifier on the new registered email
   if (emailVerifier(req.body.email, usersDb)) {
-    return res.status(400).send('Email already registered')
+    return res.status(400).send('Email already registered.')
   }
 
   // Setting userId
@@ -211,9 +209,14 @@ app.post("/register" , (req, res) => {
 });
 
 app.post("/urls/:shortURLId", (req, res) => {
+
+  const userId = req.cookies["user_id"];
+  const user = usersDb[userId];
+
   const longURL = req.body["newLongURL"];
   urlDatabase[req.params.shortURLId] = longURL
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { urls: urlDatabase, user };
+
   res.render("urls_index", templateVars);
 });
 
@@ -228,8 +231,12 @@ app.get("/urls/new", (req,res) => {
 
 
 app.get("/urls/:shortURL", (req, res) => {
+
+  const userId = req.cookies["user_id"];
+  const user = usersDb[userId];
+
   const templateVars = {  shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], 
-    username: req.cookies["username"] };
+ user };
   res.render("urls_show", templateVars);
 });
 
