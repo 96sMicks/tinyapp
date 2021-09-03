@@ -83,8 +83,28 @@ app.get("/urls", (req, res) => {
 
   const userId = req.cookies["user_id"];
   const user = usersDb[userId];
+  
+  if(!user) {
+    return res.redirect("/login")
+  }
 
-  const templateVars = { urls: urlDatabase, user  };
+  const filteredUrlDatabase = {};
+
+  // Looping through urlDatabase to find matching ids
+  const urlsForUser = (id) => {
+
+    for (const shortURL in urlDatabase) {
+      if (id === urlDatabase[shortURL].userId) {
+        filteredUrlDatabase[shortURL] = urlDatabase[shortURL];
+      }
+    }
+  }
+
+  urlsForUser(userId);
+  // console.log(filteredUrlDatabase);
+
+
+  const templateVars = { urls: filteredUrlDatabase, user  };
   
   res.render("urls_index", templateVars);
 });
@@ -118,14 +138,6 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURLId}`);
 }); 
 
-// Setting the link to the URL for shortURls
-app.get("/u/:shortURLId", (req, res) => {
-  
-  const longURL = (urlDatabase[req.params.shortURLId]["longURL"]);
-
-  // const longURL = urlDatabase[req.params.shortURLId];
-  res.redirect(longURL);
-});
 
 // The delete route
 app.post("/urls/:shortURLId/delete", (req, res) => {
@@ -235,12 +247,23 @@ app.post("/register" , (req, res) => {
   // Adding user info to userDb
   usersDb[userId] = newUser
 
-  
   //After adding user, setting a user_id cookie to our new generated id
   res.cookie("user_id", userId);
 
   res.redirect("/urls");
 });
+
+// This route is for using the shortId without being logged in
+app.get("/u/:shortURLId", (req, res) => {
+  
+  if(urlDatabase.hasOwnProperty(req.params.shortURLId)) {
+    const longURL = urlDatabase[req.params.shortURLId]["longURL"];
+    res.redirect(longURL);
+  }
+
+  return res.status(400).send("Bad Request: This link hasn't been made.")
+  
+})
 
 app.post("/urls/:shortURLId", (req, res) => {
 
@@ -255,6 +278,8 @@ app.post("/urls/:shortURLId", (req, res) => {
 
   urlDatabase[req.params.shortURLId].longURL = longURL
   const templateVars = { urls: urlDatabase, user };
+
+  console.log(urlDatabase);
 
 
   res.render("urls_index", templateVars);
@@ -279,7 +304,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
   const userId = req.cookies["user_id"];
   const user = usersDb[userId];
-  
+
   if(!user) {
     return res.redirect("/login")
   }
