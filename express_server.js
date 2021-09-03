@@ -1,13 +1,51 @@
 const express = require("express");
 const app = express();
 const PORT = 3000;
-const bodyParser = require("body-parser")
-const cookieParser = require("cookie-parser")
+const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const bcrypt = require("bcrypt");
+
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 
 app.set("view engine", "ejs")
+
+const urlDatabase = {
+
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userId: "userRandomID"
+  },
+  "9sm5xK": {
+   longURL: "http://www.google.com",
+   userId: "userRandomID"
+  },
+  "m1cK3y": {
+    longURL: "http://www.nba.com",
+    userId: "user2RandomID"
+  }
+    
+};
+
+const saltRounds = 10
+
+
+const hashedUser1Password = bcrypt.hashSync("111", 10);
+const hashedUser2Password = bcrypt.hashSync("aaa", 10);
+
+const usersDb = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "b@b.com", 
+    password: hashedUser1Password
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "a@a.com", 
+    password: hashedUser2Password
+  }
+}
 
 // Helper functions
 
@@ -33,47 +71,15 @@ const emailVerifier = function(email, database)  {
   } return false;
 };
 
-const authenticateUser = (email, password, usersDb) => {
+const authenticateUser = (email, plainPassword, usersDb) => {
 
   const userFound = emailVerifier(email, usersDb);
-
-  if (userFound && userFound.password === password) {
+  if (userFound && bcrypt.compareSync(plainPassword, userFound.password)) {
     return userFound;
   } 
   return false;
 };
 
-
-
-const urlDatabase = {
-
-  "b2xVn2": {
-    longURL: "http://www.lighthouselabs.ca",
-    userId: "userRandomID"
-  },
-  "9sm5xK": {
-   longURL: "http://www.google.com",
-   userId: "userRandomID"
-  },
-  "m1cK3y": {
-    longURL: "http://www.nba.com",
-    userId: "user2RandomID"
-  }
-    
-};
-
-const usersDb = { 
-  "userRandomID": {
-    id: "userRandomID", 
-    email: "b@b.com", 
-    password: "111"
-  },
- "user2RandomID": {
-    id: "user2RandomID", 
-    email: "a@a.com", 
-    password: "aaa"
-  }
-}
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
@@ -168,7 +174,10 @@ app.get("/login", (req,res) => {
 app.post("/login", (req, res) => {
 
   // Extract the user info from the login form 
-  const { email, password } = req.body;
+  const { email, plainPassword } = req.body;
+
+  //Must set password to hashed version to compare
+  const password = bcrypt.hashSync(plainPassword, 10);
 
 
   // check if email is in userDb ---- ask about this
@@ -177,7 +186,7 @@ app.post("/login", (req, res) => {
     return res.status(403).send('Email cannot be found')
   }
 
-  const user = authenticateUser (email, password, usersDb)
+  const user = authenticateUser (email, plainPassword, usersDb)
 
   if (user) {
     // log the user in
@@ -235,10 +244,13 @@ app.post("/register" , (req, res) => {
   const userId = generateRandomString();
 
   // Getting the inputs email and password from form
-  const { email, password } = req.body
+  const { email, plainPassword } = req.body
+
+  // Hashing password
+  const password = bcrypt.hashSync(plainPassword, saltRounds);
 
   // Creating a new user in userDb
- const newUser = {
+  const newUser = {
     id: userId,
     email,
     password
