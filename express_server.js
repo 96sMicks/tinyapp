@@ -27,6 +27,7 @@ app.use(function (req, res, next) {
 });
 
 app.set("view engine", "ejs");
+app.use(express.static(__dirname + '/public'));
 
 const urlDatabase = {
   b2xVn2: {
