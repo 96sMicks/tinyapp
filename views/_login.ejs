@@ -8,25 +8,31 @@
 
 <body>
   <%- include('partials/_header'); %>
-  <h2><center>Login</center></h2>
+  <div style="width: 200px; padding-left: 1em">
+  <h2>Login</h2>
+  </div>
 
   <form method="POST" action="/login">
-    <div class="input-group input-group-sm mb-3">
+    
+    <div class="form-group input-group input-group-sm mb-3 col-5">
       <div class="input-group-prepend">
         <span class="input-group-text" id="inputGroup-sizing-sm">Email</span>
       </div>
-      <input name="email" type="email" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm">
+      <input name="email" type="email" class="form-control" id="exampleInputEmail1" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm">
     </div>
     
-    <div class="input-group input-group-sm mb-3">
+    <div class="input-group input-group-sm mb-3 col-5">
       <div class="input-group-prepend">
         <span class="input-group-text" id="inputGroup-sizing-sm">Password</span>
       </div>
       <input name="plainPassword" type="password" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm">
     </div>
-    <center><button type="submit" class="btn btn-primary">
+    <div style="width: 200px; padding-left: 1em">
+    <button type="submit" class="btn btn-primary">
       Login
-    </button></center>
+    </button>
+  </div> 
+  
   </form>
   
   <!-- Bootstrap JS -->

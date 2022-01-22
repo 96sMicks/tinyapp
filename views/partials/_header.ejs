@@ -40,7 +40,7 @@
           </form>
           <% } %>
         <% if (user) { %>
-        <div class="navbar-brand lead">Logged in as: <%= user.email %></div>
+        <div class="navbar-brand lead"><mark>Logged in as: <%= user.email %></mark></div>
         <form method="POST" action="/logout">
           <button
             type="submit"
