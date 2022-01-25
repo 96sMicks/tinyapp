@@ -202,7 +202,7 @@ app.get("/register", (req, res) => {
 });
 
 // Post register route
-app.post("/register", (req, res) => {
+app.put("/register", (req, res) => {
   // error handling for empty password, email or duplicate email while resgistering new user
   if (req.body.email === "") {
     return res.status(400).send("Bad Request: Email is empty.");
