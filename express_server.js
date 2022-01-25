@@ -105,7 +105,7 @@ app.get("/urls", (req, res) => {
 });
 
 // Creating a new shortURL and entering it in the urlDatabase
-app.post("/urls", (req, res) => {
+app.put("/urls", (req, res) => {
   const userId = req.session.user_id;
   const user = usersDb[userId];
 
