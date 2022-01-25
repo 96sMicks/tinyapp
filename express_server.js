@@ -186,7 +186,7 @@ app.put("/login", (req, res) => {
 });
 
 // Logout route
-app.post("/logout", (req, res) => {
+app.put("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
 });
